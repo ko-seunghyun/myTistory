@@ -20,6 +20,7 @@ namespace myTistory
 
         private string AuthURL = "https://www.tistory.com/oauth/authorize";
         private string BlogInfoURL = "https://www.tistory.com/apis/blog/info?access_token=";
+        private string RedirectURL = "http://fallingstar.tistory.com/";
 
         private string DELIM_ACC_TOK = "#access_token";
         private string DELIM_STAT = "&state=";
@@ -40,9 +41,15 @@ namespace myTistory
                 srcPath = txb_path.Text = ofd.FileName;
                 dstPath = srcPath.Replace(srcPath.Substring(srcPath.LastIndexOf(".")), ".mht");
             }
+
+            //oneNote to mht 파일
+            oneToMht();
+
+            //mht에서 contents 만들기.
+            makeContents(dstPath);
         }
 
-        public void oneToMht()
+        private void oneToMht()
         {
             Microsoft.Office.Interop.OneNote.Application onenoteApp = new Microsoft.Office.Interop.OneNote.Application();
 
@@ -63,7 +70,7 @@ namespace myTistory
         {
             StringBuilder dataParams = new StringBuilder();
             dataParams.Append("client_id=74e30b40c4ffe56b9e6b1b016575c2bd&");
-            dataParams.Append("redirect_uri=http://fallingstar.tistory.com/&");
+            dataParams.Append("redirect_uri="+ RedirectURL +"& ");
             dataParams.Append("response_type=token");
             //dataParams.Append("response_type=code");
 
@@ -135,6 +142,7 @@ namespace myTistory
                 StringBuilder dataParams = new StringBuilder();
                 dataParams.Append(ACCESS_TOKEN);
 
+                //블로그 정보 받기.
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(BlogInfoURL + dataParams);
                 request.Method = "GET";
 
@@ -159,6 +167,14 @@ namespace myTistory
                     string t = ex.StackTrace;
                 }
             }
+        }
+
+        /// <summary>
+        /// mht 파일에서 컨텐츠를 만들어 낸다.
+        /// </summary>
+        private void makeContents(string mhtFile)
+        {
+            axWebBrowser1.Navigate(mhtFile);
         }
     }
 }
