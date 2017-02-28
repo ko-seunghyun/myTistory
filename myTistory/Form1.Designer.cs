@@ -34,6 +34,7 @@
             this.btn_upload = new System.Windows.Forms.Button();
             this.btn_auth = new System.Windows.Forms.Button();
             this.axWebBrowser1 = new AxSHDocVw.AxWebBrowser();
+            this.cb_blog = new System.Windows.Forms.ComboBox();
             ((System.ComponentModel.ISupportInitialize)(this.axWebBrowser1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -62,6 +63,7 @@
             this.btn_upload.TabIndex = 2;
             this.btn_upload.Text = "업로드";
             this.btn_upload.UseVisualStyleBackColor = true;
+            this.btn_upload.Click += new System.EventHandler(this.btn_upload_Click);
             // 
             // btn_auth
             // 
@@ -82,11 +84,21 @@
             this.axWebBrowser1.TabIndex = 4;
             this.axWebBrowser1.DocumentComplete += new AxSHDocVw.DWebBrowserEvents2_DocumentCompleteEventHandler(this.axWebBrowser1_DocumentComplete);
             // 
+            // cb_blog
+            // 
+            this.cb_blog.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cb_blog.FormattingEnabled = true;
+            this.cb_blog.Location = new System.Drawing.Point(93, 39);
+            this.cb_blog.Name = "cb_blog";
+            this.cb_blog.Size = new System.Drawing.Size(121, 20);
+            this.cb_blog.TabIndex = 5;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(742, 347);
+            this.Controls.Add(this.cb_blog);
             this.Controls.Add(this.axWebBrowser1);
             this.Controls.Add(this.btn_auth);
             this.Controls.Add(this.btn_upload);
@@ -107,6 +119,7 @@
         private System.Windows.Forms.Button btn_upload;
         private System.Windows.Forms.Button btn_auth;
         private AxSHDocVw.AxWebBrowser axWebBrowser1;
+        private System.Windows.Forms.ComboBox cb_blog;
     }
 }
 

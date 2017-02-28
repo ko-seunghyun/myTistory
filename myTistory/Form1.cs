@@ -10,6 +10,8 @@ using Microsoft.Office.Interop.OneNote;
 using System.Xml.Linq;
 using System.Net;
 using System.IO;
+using mshtml;
+using System.Xml;
 
 namespace myTistory
 {
@@ -17,14 +19,19 @@ namespace myTistory
     {
         private string srcPath = "";
         private string dstPath = "";
+        private string contents = "";
 
         private string AuthURL = "https://www.tistory.com/oauth/authorize";
         private string BlogInfoURL = "https://www.tistory.com/apis/blog/info?access_token=";
         private string RedirectURL = "http://fallingstar.tistory.com/";
+        private string WriteURL = "https://www.tistory.com/apis/post/write";
 
         private string DELIM_ACC_TOK = "#access_token";
         private string DELIM_STAT = "&state=";
         private string ACCESS_TOKEN = "";
+
+        private string BlogName = "";
+        private bool isOpenFile = false;
 
         public Form1()
         {
@@ -45,8 +52,11 @@ namespace myTistory
             //oneNote to mht 파일
             oneToMht();
 
+            isOpenFile = true;
+
             //mht에서 contents 만들기.
             makeContents(dstPath);
+
         }
 
         private void oneToMht()
@@ -132,40 +142,41 @@ namespace myTistory
 
             int idx = url.IndexOf("#access_token");
 
-            //엑세스 토큰 받아옴.
+            //엑세스 토큰 받아옴. 처음 로그인 시 사용.
             if (idx > 0)
             {
                 string temp = url.Substring(idx + DELIM_ACC_TOK.Length + 1);
 
                 ACCESS_TOKEN = temp.Substring(0, temp.Length - DELIM_STAT.Length);
 
-                StringBuilder dataParams = new StringBuilder();
-                dataParams.Append(ACCESS_TOKEN);
+                getBlogInfo();
+            }
+            else if (isOpenFile)
+            {
+                
+                IHTMLDocument2 doc = (IHTMLDocument2)axWebBrowser1.Document;
 
-                //블로그 정보 받기.
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(BlogInfoURL + dataParams);
-                request.Method = "GET";
+                contents = doc.body.parentElement.outerHTML;
 
+                IHTMLControlRange imgRange = (IHTMLControlRange)((HTMLBody)doc.body).createControlRange();
 
-                // 요청, 응답 받기
-                try
+                foreach (IHTMLImgElement img in doc.images)
                 {
-                    HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                    imgRange.add((IHTMLControlElement)img);
 
-                    // 응답 Stream 읽기
-                    Stream stReadData = response.GetResponseStream();
-                    StreamReader srReadData = new StreamReader(stReadData, Encoding.UTF8);
+                    string src = img.src;
 
-                    // 응답 Stream -> 응답 String 변환
-                    string strResult = srReadData.ReadToEnd();
+                    imgRange.execCommand("Copy", false, null);
 
-                    Console.WriteLine(strResult);
-                    Console.ReadLine();
+                    using (Bitmap bmp = (Bitmap)Clipboard.GetDataObject().GetData(DataFormats.Bitmap))
+                    {
+                        bmp.Save(@"C:\" + img.nameProp);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    string t = ex.StackTrace;
-                }
+
+                //Console.WriteLine(contents);
+
+                isOpenFile = false;
             }
         }
 
@@ -175,6 +186,79 @@ namespace myTistory
         private void makeContents(string mhtFile)
         {
             axWebBrowser1.Navigate(mhtFile);
+        }
+
+        /// <summary>
+        /// 블로그 정보를 가져온다.
+        /// </summary>
+        private void getBlogInfo()
+        {
+            StringBuilder dataParams = new StringBuilder();
+            dataParams.Append(ACCESS_TOKEN);
+
+            //블로그 정보 받기.
+            XmlDocument xml = httpResponse(BlogInfoURL, dataParams); // XmlDocument 생성
+            xml.Save(@"C:\테스트.xml");
+
+            XmlNodeList xnList = xml.GetElementsByTagName("blog"); //접근할 노드
+            //XmlNodeList xnList = xml.SelectNodes("/tistory/item"); //접근할 노드
+
+            foreach (XmlNode xn in xnList)
+            {
+                string blogURL = xn["url"].InnerText; //블로그이름
+                string blogName = xn["name"].InnerText; //블로그이름
+
+                //블로그 이름 추가
+                cb_blog.Items.Add(blogName);
+                cb_blog.SelectedIndex = 0;
+                //string lng = xn["point"]["y"].InnerText;
+            }
+        }
+
+        /// <summary>
+        /// http 객체를 통해 응답을 받아온다. 응답은 xml 형식이다.
+        /// </summary>
+        /// <param name="url">api 주소</param>
+        /// <param name="param">파라미터 값</param>
+        /// <returns>xml 응답</returns>
+        private XmlDocument httpResponse(string url, StringBuilder param)
+        {
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url + param);
+            request.Method = "GET";
+
+            XmlDocument document = new XmlDocument();
+
+
+            // 요청, 응답 받기
+            try
+            {
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+
+                // 응답 Stream 읽기
+                Stream stReadData = response.GetResponseStream();
+                StreamReader srReadData = new StreamReader(stReadData, Encoding.UTF8);
+
+                // 응답 Stream -> 응답 String 변환
+                //strResult = srReadData.ReadToEnd();
+                document.Load(srReadData);
+
+            }
+            catch (Exception ex)
+            {
+                document = null;
+            }
+
+            return document;
+        }
+
+        private void parseImage(string mhtFile)
+        {
+
+        }
+
+        private void btn_upload_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
