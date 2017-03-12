@@ -141,9 +141,14 @@ namespace myTistory
 
         }
 
+        /// <summary>
+        /// 처음 글쓰기로 업로드 하면.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void btn_upload_Click(object sender, EventArgs e)
         {
-
+            API.writePost(cb_blog.Text, contents);
         }
     }
 }

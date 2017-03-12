@@ -35,6 +35,10 @@ namespace myTistory
             return AuthURL + "?" + dataParams;
         }
 
+        /// <summary>
+        /// 토큰 정보를 가져온다.
+        /// </summary>
+        /// <param name="url">파싱할 url</param>
         public void getAccessToken(string url)
         {
 
@@ -64,7 +68,7 @@ namespace myTistory
 
             foreach (XmlNode xn in xnList)
             {
-                string blogURL = xn["url"].InnerText; //블로그이름
+                string blogURL = xn["url"].InnerText; //블로그주소
                 string blogName = xn["name"].InnerText; //블로그이름
 
                 //블로그 이름 추가
@@ -75,6 +79,29 @@ namespace myTistory
                 return null;
             else
                 return (string[])list.ToArray(typeof(string));
+        }
+
+
+        public void writePost(string blogName, string contents)
+        {
+            StringBuilder dataParams = new StringBuilder();
+            dataParams.Append("access_token="+ ACCESS_TOKEN);
+            dataParams.Append("&blogName=" + blogName);
+            dataParams.Append("&title=test");
+            dataParams.Append("&content="+contents);
+
+            //글쓰기 응답 받음.
+            XmlDocument xml = httpResponseByPost(WriteURL, dataParams);
+
+            XmlNodeList xnList = xml.GetElementsByTagName("tistory"); //접근할 노드
+
+            foreach (XmlNode xn in xnList)
+            {
+                string status = xn["status"].InnerText; //글쓰기 성공여부, 성공 200
+                string postid = xn["postId"].InnerText; //글번호
+                string fullUrl = xn["url"].InnerText; //글 주소
+            }
+
         }
 
         /// <summary>
@@ -110,30 +137,25 @@ namespace myTistory
             }
 
             return document;
+        }
 
 
-            /* POST */
-            // HttpWebRequest 객체 생성, 설정
-            /*HttpWebRequest request = (HttpWebRequest)WebRequest.Create(strUri);
+        private XmlDocument httpResponseByPost(string url, StringBuilder param)
+        {
+            XmlDocument document = new XmlDocument();
+
+            // 요청 String -> 요청 Byte 변환
+            byte[] byteDataParams = UTF8Encoding.UTF8.GetBytes(param.ToString());
+            
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = "POST";    // 기본값 "GET"
             request.ContentType = "application/x-www-form-urlencoded";
             request.ContentLength = byteDataParams.Length;
-            
-             
-            // 요청 String -> 요청 Byte 변환
-            byte[] byteDataParams = UTF8Encoding.UTF8.GetBytes(dataParams.ToString());
 
             // 요청 Byte -> 요청 Stream 변환
             Stream stDataParams = request.GetRequestStream();
             stDataParams.Write(byteDataParams, 0, byteDataParams.Length);
             stDataParams.Close();
-             */
-
-            /* GET */
-            // GET 방식은 Uri 뒤에 보낼 데이터를 입력하시면 됩니다.
-            /*HttpWebRequest request = (HttpWebRequest)WebRequest.Create(AuthURL + "?" + dataParams);
-            request.Method = "GET";
-
 
             // 요청, 응답 받기
             try
@@ -142,18 +164,19 @@ namespace myTistory
 
                 // 응답 Stream 읽기
                 Stream stReadData = response.GetResponseStream();
-                StreamReader srReadData = new StreamReader(stReadData, Encoding.Default);
+                StreamReader srReadData = new StreamReader(stReadData, Encoding.UTF8);
 
                 // 응답 Stream -> 응답 String 변환
-                string strResult = srReadData.ReadToEnd();
+                //strResult = srReadData.ReadToEnd();
+                document.Load(srReadData);
 
-                Console.WriteLine(strResult);
-                Console.ReadLine();
             }
             catch (Exception ex)
             {
-                string t = ex.StackTrace;
-            }*/
+                document = null;
+            }
+
+            return document;
         }
 
     }
