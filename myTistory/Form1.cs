@@ -191,5 +191,6 @@ namespace myTistory
         {
             API.writePost(cb_blog.Text, title, contents);
         }
+
     }
 }

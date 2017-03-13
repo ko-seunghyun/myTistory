@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using System.Xml;
 using System.IO;
+using System.Web;
 
 namespace myTistory
 {
@@ -144,18 +145,16 @@ namespace myTistory
         {
             XmlDocument document = new XmlDocument();
 
-            //param = param.Replace(" ", "%0D%0A");
+            //&nbsp는 원래 탭인데, 원노트에서는 줄바꿈으로 쓰이고 있음.
+            //이 태그가 들어가면 글 잘림 현상 나타남.
+            param = param.Replace("&nbsp;", "<br>");
 
             // 요청 String -> 요청 Byte 변환
             byte[] byteDataParams = UTF8Encoding.UTF8.GetBytes(param.ToString());
             
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = "POST";    // 기본값 "GET"
-            request.KeepAlive = true;
-            request.SendChunked = true;
-            request.ContentType = "application/x-www-form-urlencoded; charset=utf-8";// "text/html; charset=UTF-8"; 
-
-            //request.Timeout = 0;
+            request.ContentType = "application/x-www-form-urlencoded; charset=UTF-8";// "text/html; charset=UTF-8"; 
             request.ContentLength = byteDataParams.Length;
 
             // 요청 Byte -> 요청 Stream 변환
