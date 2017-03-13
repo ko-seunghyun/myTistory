@@ -82,13 +82,13 @@ namespace myTistory
         }
 
 
-        public void writePost(string blogName, string contents)
+        public void writePost(string blogName, string title, string contents)
         {
             StringBuilder dataParams = new StringBuilder();
             dataParams.Append("access_token="+ ACCESS_TOKEN);
             dataParams.Append("&blogName=" + blogName);
-            dataParams.Append("&title=test");
-            dataParams.Append("&content="+contents);
+            dataParams.Append("&title="+title);
+            dataParams.Append("&content="+ contents);
 
             //글쓰기 응답 받음.
             XmlDocument xml = httpResponseByPost(WriteURL, dataParams);
@@ -144,12 +144,18 @@ namespace myTistory
         {
             XmlDocument document = new XmlDocument();
 
+            //param = param.Replace(" ", "%0D%0A");
+
             // 요청 String -> 요청 Byte 변환
             byte[] byteDataParams = UTF8Encoding.UTF8.GetBytes(param.ToString());
             
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = "POST";    // 기본값 "GET"
-            request.ContentType = "application/x-www-form-urlencoded";
+            request.KeepAlive = true;
+            request.SendChunked = true;
+            request.ContentType = "application/x-www-form-urlencoded; charset=utf-8";// "text/html; charset=UTF-8"; 
+
+            //request.Timeout = 0;
             request.ContentLength = byteDataParams.Length;
 
             // 요청 Byte -> 요청 Stream 변환

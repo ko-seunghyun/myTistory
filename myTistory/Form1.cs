@@ -25,6 +25,7 @@ namespace myTistory
 
         private string BlogName = "";
         private bool isOpenFile = false;
+        private string title = "";
 
         public Form1()
         {
@@ -63,6 +64,41 @@ namespace myTistory
 
             try
             {
+                //타이틀(제목) 확인을 위한 xml 생성.
+                string xml;
+                XmlDocument document = new XmlDocument();
+                
+                onenoteApp.GetHierarchy(sectionId, HierarchyScope.hsPages, out xml);
+
+                document.LoadXml(xml);
+               
+                XmlNodeList xnList = document.GetElementsByTagName("one:Page"); //접근할 노드
+
+                string pageId = "";
+                foreach (XmlNode xn in xnList)
+                {
+                    title = xn.Attributes["name"].Value; // get page title
+                    pageId = xn.Attributes["ID"].Value; //get page id
+                }
+
+                document.RemoveAll();
+                
+                /*onenoteApp.GetPageContent(pageId, out xml, PageInfo.piAll);
+                document.LoadXml(xml);
+
+                xnList = document.GetElementsByTagName("one:OEChildren/one:T"); //접근할 노드
+
+                contents = xnList[0].InnerText;
+
+                foreach (XmlNode xn in xnList)
+                {
+                    title = xn.Attributes["name"].Value; // get page title
+                    pageId = xn.Attributes["ID"].Value; //get page id
+
+                }*/
+
+                //document.Save(@"c:\1111.xml");
+
                 onenoteApp.Publish(sectionId, dstPath, Microsoft.Office.Interop.OneNote.PublishFormat.pfMHTML, "");
             }
             catch
@@ -136,6 +172,11 @@ namespace myTistory
             axWebBrowser1.Navigate(mhtFile);
         }
 
+        private void makContetns(string sectionId, string pageId)
+        {
+
+        }
+
         private void parseImage(string mhtFile)
         {
 
@@ -148,7 +189,7 @@ namespace myTistory
         /// <param name="e"></param>
         private void btn_upload_Click(object sender, EventArgs e)
         {
-            API.writePost(cb_blog.Text, contents);
+            API.writePost(cb_blog.Text, title, contents);
         }
     }
 }
