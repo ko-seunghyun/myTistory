@@ -16,9 +16,13 @@ namespace myTistory
         public const string BlogInfoURL = "https://www.tistory.com/apis/blog/info?access_token=";
         public const string RedirectURL = "http://fallingstar.tistory.com/";
         public const string WriteURL = "https://www.tistory.com/apis/post/write";
+        public const string AttachURL = "https://www.tistory.com/apis/post/attach";
+
         public const string DELIM_ACC_TOK = "#access_token";
         public const string DELIM_STAT = "&state=";
         public string ACCESS_TOKEN = "";
+
+        public Dictionary<string, string> imgDic = new Dictionary<string, string>();
 
         public myOpenAPI() { }
 
@@ -82,14 +86,29 @@ namespace myTistory
                 return (string[])list.ToArray(typeof(string));
         }
 
-
+        /// <summary>
+        /// 글쓰기 api
+        /// </summary>
+        /// <param name="blogName">블로그 이름</param>
+        /// <param name="title">게시글 제목</param>
+        /// <param name="contents">게시글 내용</param>
         public void writePost(string blogName, string title, string contents)
         {
+            //이미지를 포함한 content는 replacer로 교체
+            foreach (KeyValuePair<string, string> pair in imgDic)
+            {
+                contents.Replace(pair.Key, pair.Value);
+            }
+
             StringBuilder dataParams = new StringBuilder();
             dataParams.Append("access_token="+ ACCESS_TOKEN);
             dataParams.Append("&blogName=" + blogName);
             dataParams.Append("&title="+title);
             dataParams.Append("&content="+ contents);
+
+            //&nbsp는 원래 탭인데, 원노트에서는 줄바꿈으로 쓰이고 있음.
+            //이 태그가 들어가면 글 잘림 현상 나타남.
+            dataParams = dataParams.Replace("&nbsp;", "<br>");
 
             //글쓰기 응답 받음.
             XmlDocument xml = httpResponseByPost(WriteURL, dataParams);
@@ -104,6 +123,39 @@ namespace myTistory
             }
 
         }
+
+        public void uploadFile(string blogName, Dictionary<string,string>data)
+        {
+            //여기에서 pair key = C:\img.jpg value = src
+            foreach (KeyValuePair<string, string> pair in data)
+            {
+                StringBuilder dataParams = new StringBuilder();
+                dataParams.Append("access_token=" + ACCESS_TOKEN);
+                dataParams.Append("&blogName=" + blogName);
+
+                FileStream fs = new FileStream(pair.Key, FileMode.Open, FileAccess.Read);
+                byte[] imgData = new byte[fs.Length];
+                fs.Read(imgData, 0, imgData.Length);
+                fs.Close();
+
+                dataParams.Append("&uploadedfile=");
+
+                XmlDocument xml = httpResponseByPost(AttachURL, dataParams, imgData);
+
+                XmlNodeList xnList = xml.GetElementsByTagName("tistory"); //접근할 노드
+
+                string replacer = "";
+                foreach (XmlNode xn in xnList)
+                {
+                    replacer = xn["replacer"].InnerText; 
+                }
+
+                imgDic.Add(pair.Value, replacer);
+
+            }
+            
+        }
+
 
         /// <summary>
         /// http 객체를 통해 응답을 받아온다. 응답은 xml 형식이다.
@@ -141,20 +193,28 @@ namespace myTistory
         }
 
 
-        private XmlDocument httpResponseByPost(string url, StringBuilder param)
+        private XmlDocument httpResponseByPost(string url, StringBuilder param, byte[] fileData = null)
         {
             XmlDocument document = new XmlDocument();
-
-            //&nbsp는 원래 탭인데, 원노트에서는 줄바꿈으로 쓰이고 있음.
-            //이 태그가 들어가면 글 잘림 현상 나타남.
-            param = param.Replace("&nbsp;", "<br>");
 
             // 요청 String -> 요청 Byte 변환
             byte[] byteDataParams = UTF8Encoding.UTF8.GetBytes(param.ToString());
             
+            if(fileData != null)
+            {
+                byte[] temp = new byte[byteDataParams.Length + fileData.Length];
+                Array.Copy(byteDataParams, temp, byteDataParams.Length);
+                Array.Copy(fileData, 0, temp, byteDataParams.Length, fileData.Length);
+                byteDataParams = temp;
+            }
+
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = "POST";    // 기본값 "GET"
-            request.ContentType = "application/x-www-form-urlencoded; charset=UTF-8";// "text/html; charset=UTF-8"; 
+            request.KeepAlive = true;
+            if (fileData != null)
+                request.ContentType = "multipart/form-data; boundary=" + "---------------------------" + DateTime.Now.Ticks.ToString("x"); 
+            else
+                request.ContentType = "application/x-www-form-urlencoded; charset=UTF-8";// "text/html; charset=UTF-8"; 
             request.ContentLength = byteDataParams.Length;
 
             // 요청 Byte -> 요청 Stream 변환
