@@ -226,6 +226,11 @@ namespace myTistory
             API.writePost(cb_blog.Text, title, contents);
         }
 
+        private void btn_backup_Click(object sender, EventArgs e)
+        {
+            API.readPost(cb_blog.Text, "");
+        }
+
         //Mid
         /// <summary>
         /// 문자열 원본의 지정한 위치에서 부터 추출할 갯수 만큼 문자열을 가져옵니다.
@@ -325,5 +330,7 @@ namespace myTistory
 
             return sReturn;
         }
+
+       
     }
 }

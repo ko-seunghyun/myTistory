@@ -35,6 +35,7 @@
             this.btn_auth = new System.Windows.Forms.Button();
             this.axWebBrowser1 = new AxSHDocVw.AxWebBrowser();
             this.cb_blog = new System.Windows.Forms.ComboBox();
+            this.btn_backup = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.axWebBrowser1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -93,11 +94,22 @@
             this.cb_blog.Size = new System.Drawing.Size(121, 20);
             this.cb_blog.TabIndex = 5;
             // 
+            // btn_backup
+            // 
+            this.btn_backup.Location = new System.Drawing.Point(12, 99);
+            this.btn_backup.Name = "btn_backup";
+            this.btn_backup.Size = new System.Drawing.Size(75, 23);
+            this.btn_backup.TabIndex = 6;
+            this.btn_backup.Text = "글백업";
+            this.btn_backup.UseVisualStyleBackColor = true;
+            this.btn_backup.Click += new System.EventHandler(this.btn_backup_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(742, 347);
+            this.Controls.Add(this.btn_backup);
             this.Controls.Add(this.cb_blog);
             this.Controls.Add(this.axWebBrowser1);
             this.Controls.Add(this.btn_auth);
@@ -120,6 +132,7 @@
         private System.Windows.Forms.Button btn_auth;
         private AxSHDocVw.AxWebBrowser axWebBrowser1;
         private System.Windows.Forms.ComboBox cb_blog;
+        private System.Windows.Forms.Button btn_backup;
     }
 }
 

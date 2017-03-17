@@ -12,10 +12,11 @@ namespace myTistory
 {
     public class myOpenAPI
     {
-        public const string AuthURL = "https://www.tistory.com/oauth/authorize";
+        public const string AuthURL = "https://www.tistory.com/oauth/authorize?";
         public const string BlogInfoURL = "https://www.tistory.com/apis/blog/info?access_token=";
         public const string RedirectURL = "http://fallingstar.tistory.com/";
         public const string WriteURL = "https://www.tistory.com/apis/post/write";
+        public const string ReadURL = "https://www.tistory.com/apis/post/read?";
         public const string AttachURL = "https://www.tistory.com/apis/post/attach";
 
         public const string DELIM_ACC_TOK = "#access_token";
@@ -37,7 +38,7 @@ namespace myTistory
             dataParams.Append("redirect_uri=" + RedirectURL + "& ");
             dataParams.Append("response_type=token");
 
-            return AuthURL + "?" + dataParams;
+            return AuthURL + dataParams;
         }
 
         /// <summary>
@@ -124,18 +125,18 @@ namespace myTistory
 
         }
 
+
+        /// <summary>
+        /// 파일 업로드 부분.
+        /// </summary>
+        /// <param name="blogName">블로그 이름</param>
+        /// <param name="data">키/값 페어 사전</param>
         public void uploadFile(string blogName, Dictionary<string, string> data)
         {
-            //여기에서 pair key = C:\img.jpg value = src
+            //여기에서 pair key = C:\img.jpg value = <IMG src="..." width =""...>
             foreach (KeyValuePair<string, string> pair in data)
             {
-                StringBuilder dataParams = new StringBuilder();
-                dataParams.Append("access_token=" + ACCESS_TOKEN);
-                dataParams.Append("&blogName=" + blogName);
-
-
-                dataParams.Append("&uploadedfile=");
-
+                
                 //img file to byte array
                 FileStream fs = new FileStream(pair.Key, FileMode.Open, FileAccess.Read);
                 byte[] imgData = new byte[fs.Length];
@@ -186,6 +187,32 @@ namespace myTistory
             }
 
         }
+
+        public void readPost(string blogName, string postId)
+        {
+            
+            StringBuilder dataParams = new StringBuilder();
+            dataParams.Append("access_token=" + ACCESS_TOKEN);
+            dataParams.Append("&blogName=" + blogName);
+            dataParams.Append("&postId=" + 27);
+
+            //블로그 정보 받기.
+            XmlDocument xml = httpResponse(ReadURL, dataParams); // XmlDocument 생성
+            //xml.Save(@"C:\테스트.xml");
+
+            XmlNodeList xnList = xml.GetElementsByTagName("tistory"); //접근할 노드
+            //XmlNodeList xnList = xml.SelectNodes("/tistory/item"); //접근할 노드
+
+            /*foreach (XmlNode xn in xnList)
+            {
+                string blogURL = xn["url"].InnerText; //블로그주소
+                string blogName = xn["name"].InnerText; //블로그이름
+
+                //블로그 이름 추가
+                list.Add(blogName);
+            }*/
+        }
+
 
 
         /// <summary>
