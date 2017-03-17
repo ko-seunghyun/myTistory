@@ -84,10 +84,10 @@ namespace myTistory
 
                 document.RemoveAll();
                 
-                /*onenoteApp.GetPageContent(pageId, out xml, PageInfo.piAll);
+                onenoteApp.GetPageContent(pageId, out xml, PageInfo.piAll);
                 document.LoadXml(xml);
 
-                xnList = document.GetElementsByTagName("one:OEChildren/one:T"); //접근할 노드
+                /*xnList = document.GetElementsByTagName("one:OEChildren/one:T"); //접근할 노드
 
                 contents = xnList[0].InnerText;
 
@@ -144,9 +144,23 @@ namespace myTistory
 
                     using (Bitmap bmp = (Bitmap)Clipboard.GetDataObject().GetData(DataFormats.Bitmap))
                     {
-                        string path = @"C:\" + img.nameProp;
-                        bmp.Save(path);
-                        imgDic.Add(path,"");
+                        string path = @"C:\temp\" + img.nameProp;
+
+                        if (System.IO.File.Exists(path))
+                            System.IO.File.Delete(path);
+
+                        try
+                        {
+                            bmp.Save(path);
+                        }
+                        catch(Exception err)
+                        {
+                            err.ToString();
+                        }
+                        
+
+
+                        //imgDic.Add(path,"");
                     }
                 }
 
@@ -160,8 +174,8 @@ namespace myTistory
                         int lastIndex = outerHtml.LastIndexOf("\"") - 1;
                         int length = lastIndex - startIndex + 1;
                         string src = outerHtml.Substring(startIndex, length);
-                        string key = @"C:\" + src.Split('/')[1];
-                        imgDic[key] = src;
+                        string key = @"C:\temp\" + src.Split('/')[1];
+                        imgDic[key] = outerHtml;
                     }
                 }
 

@@ -97,7 +97,7 @@ namespace myTistory
             //이미지를 포함한 content는 replacer로 교체
             foreach (KeyValuePair<string, string> pair in imgDic)
             {
-                contents.Replace(pair.Key, pair.Value);
+                contents = contents.Replace(pair.Key, pair.Value);
             }
 
             StringBuilder dataParams = new StringBuilder();
@@ -124,7 +124,7 @@ namespace myTistory
 
         }
 
-        public void uploadFile(string blogName, Dictionary<string,string>data)
+        public void uploadFile(string blogName, Dictionary<string, string> data)
         {
             //여기에서 pair key = C:\img.jpg value = src
             foreach (KeyValuePair<string, string> pair in data)
@@ -133,27 +133,58 @@ namespace myTistory
                 dataParams.Append("access_token=" + ACCESS_TOKEN);
                 dataParams.Append("&blogName=" + blogName);
 
+
+                dataParams.Append("&uploadedfile=");
+
+                //img file to byte array
                 FileStream fs = new FileStream(pair.Key, FileMode.Open, FileAccess.Read);
                 byte[] imgData = new byte[fs.Length];
                 fs.Read(imgData, 0, imgData.Length);
                 fs.Close();
 
-                dataParams.Append("&uploadedfile=");
+                // Generate post objects
+                Dictionary<string, object> postParameters = new Dictionary<string, object>();
+                postParameters.Add("access_token", ACCESS_TOKEN);
+                postParameters.Add("blogName", blogName);
+                //postParameters.Add("uploadedfile", pair.Key);
 
-                XmlDocument xml = httpResponseByPost(AttachURL, dataParams, imgData);
+                postParameters.Add("uploadedfile", new FormUpload.FileParameter(imgData, pair.Key, "image/jpeg"));
 
-                XmlNodeList xnList = xml.GetElementsByTagName("tistory"); //접근할 노드
+                // Create request and receive response
+                string userAgent = "Someone";
+
+                // Process response
+                XmlDocument document = new XmlDocument();
+                try
+                {
+                    HttpWebResponse webResponse = FormUpload.MultipartFormDataPost(AttachURL, userAgent, postParameters);
+
+                    // 응답 Stream 읽기
+                    Stream stReadData = webResponse.GetResponseStream();
+                    StreamReader srReadData = new StreamReader(stReadData, Encoding.UTF8);
+
+                    // 응답 Stream -> 응답 String 변환
+                    //strResult = srReadData.ReadToEnd();
+                    document.Load(srReadData);
+
+                }
+                catch (Exception ex)
+                {
+                    document = null;
+                }
+
+                XmlNodeList xnList = document.GetElementsByTagName("tistory"); //접근할 노드
 
                 string replacer = "";
                 foreach (XmlNode xn in xnList)
                 {
-                    replacer = xn["replacer"].InnerText; 
+                    replacer = xn["replacer"].InnerText;
                 }
 
                 imgDic.Add(pair.Value, replacer);
 
             }
-            
+
         }
 
 
